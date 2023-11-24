@@ -12,11 +12,21 @@ router.get('/', async (req, res) => {
 // register(Create)/Authenticate User
 router.post('/', async (req, res) => {
     if (req.query.action === 'register') {  //if action is 'register' then save to DB
-        await User(req.body).save();
-        res.status(201).json({
-            code: 201,
-            msg: 'Successful created new user.',
-        });
+        if(req.body.password){
+            const password = req.body.password
+            let expression = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
+            if(expression.test(password)){
+                await User(req.body).save();
+                res.status(201).json({
+                    code: 201,
+                    msg: 'Successful created new user.',
+                });
+            }else{
+                return res.status(401).json({ code: 401, msg: "The password is not good"});
+            }
+        }else{
+            return res.status(401).json({ code: 401, msg: "Authentication failed with no password"});
+        }
     }
     else {  //Must be an authenticate then!!! Query the DB and check if there's a match
         const user = await User.findOne(req.body);
